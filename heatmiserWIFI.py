@@ -14,57 +14,40 @@ from homeassistant.const import (
     TEMP_CELSIUS, ATTR_TEMPERATURE, CONF_PORT, CONF_NAME, CONF_ID, CONF_PIN)
 import homeassistant.helpers.config_validation as cv
 
-#REQUIREMENTS = ['heatmiser_wifi']
 
 _LOGGER = logging.getLogger(__name__)
 
 DEFAULT_NAME = "Heatmiser WIFI"
+DEFAULT_SENSOR = "air_temp"
 
 CONF_IPADDRESS = 'ipaddress'
-#CONF_TSTATS = 'tstats'
-
-#TSTATS_SCHEMA = vol.Schema({
-#    vol.Required(CONF_ID): cv.string,
-#    vol.Required(CONF_NAME): cv.string,
-#})
-
-
+CONF_SENSOR = 'sensor'
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_IPADDRESS): cv.string,
     vol.Required(CONF_PORT): cv.port,
 	vol.Required(CONF_PIN): cv.positive_int,
     vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
-#    vol.Required(CONF_TSTATS, default={}):
-#        vol.Schema({cv.string: TSTATS_SCHEMA}),
-})
+    vol.Optional(CONF_SENSOR, default=DEFAULT_SENSOR): cv.string,
 
-# pylint: disable=unused-variable
+
 def setup_platform(hass, config, add_devices, discovery_info=None):
     """Set up the heatmiser thermostat."""
-#    from heatmaster_wifi import heatmaster_wifi
     
 
     ipaddress = config.get(CONF_IPADDRESS)	
     port = str(config.get(CONF_PORT))
     pin = str(config.get(CONF_PIN))
     name = str(config.get(CONF_NAME))
-#    tstats = config.get(CONF_TSTATS)
-	
-#	add_devices(heatmiser = Heatmiser(ipaddress, port, pin))
-
-#    serport = connection.connection(ipaddress, port)
-#    serport.open()
-
-#    for tstat in tstats.values():
-    add_devices([HeatmiserV3Thermostat(heatmiser_wifi, port, ipaddress, pin, name)])
-#    return
+    sensor = str(config.get(CONF_SENSOR))
+    
+    add_devices([HeatmiserV3Thermostat(heatmiser_wifi, port, ipaddress, pin, name, sensor)])
 
 
 class HeatmiserV3Thermostat(ClimateDevice):
     """Representation of a HeatmiserV3 thermostat."""
 
-    def __init__(self, heatmiser_wifi, port, ipaddress, pin, name):
+    def __init__(self, heatmiser_wifi, port, ipaddress, pin, name, sensor):
         """Initialize the thermostat."""
         self.heatmiser = heatmiser_wifi.Heatmiser(ipaddress, int(port), pin)
         self.device = 1
@@ -74,6 +57,7 @@ class HeatmiserV3Thermostat(ClimateDevice):
         self._name = name
         self._id = 1
         self.dcb = None
+        self.sensor = sensor
         self.update()
         self._target_temperature = int(self.dcb.get('set_room_temp'))
         self._min_temp = 5
@@ -96,18 +80,16 @@ class HeatmiserV3Thermostat(ClimateDevice):
     @property
     def min_temp(self):
         """Return the minimum temperature."""
-        # pylint: disable=no-member
         if self._min_temp:
             return self._min_temp
 
-        # get default temp from super class
         return ClimateDevice.min_temp.fget(self)
 
     @property
     def current_temperature(self):
         """Return the current temperature."""
         if self.dcb is not None:
-            self._current_temperature = self.dcb.get('floor_temp')
+            self._current_temperature = self.dcb.get(self.sensor)
         else:
             self._current_temperature = None
         return self._current_temperature

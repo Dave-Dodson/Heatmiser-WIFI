@@ -28,7 +28,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_PORT): cv.port,
 	vol.Required(CONF_PIN): cv.positive_int,
     vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
-    vol.Optional(CONF_SENSOR, default=DEFAULT_SENSOR): cv.string,
+    vol.Optional(CONF_SENSOR, default=DEFAULT_SENSOR): cv.string,})
 
 
 def setup_platform(hass, config, add_devices, discovery_info=None):

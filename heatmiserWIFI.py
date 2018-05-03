@@ -9,7 +9,7 @@ from . import heatmiser_wifi
 import voluptuous as vol
 
 from homeassistant.components.climate import (
-    ClimateDevice, PLATFORM_SCHEMA, SUPPORT_TARGET_TEMPERATURE, ATTR_MIN_TEMP)
+    ClimateDevice, PLATFORM_SCHEMA, SUPPORT_TARGET_TEMPERATURE, ATTR_MIN_TEMP, SUPPORT_AUX_HEAT, SUPPORT_OPERATION_MODE)
 from homeassistant.const import (
     TEMP_CELSIUS, ATTR_TEMPERATURE, CONF_PORT, CONF_NAME, CONF_ID, CONF_PIN)
 import homeassistant.helpers.config_validation as cv
@@ -65,7 +65,10 @@ class HeatmiserV3Thermostat(ClimateDevice):
     @property
     def supported_features(self):
         """Return the list of supported features."""
-        return SUPPORT_TARGET_TEMPERATURE
+        if self.dcb.get("model") == "PRTHW":
+            return SUPPORT_TARGET_TEMPERATURE | SUPPORT_AUX_HEAT | SUPPORT_OPERATION_MODE
+        else:
+            return SUPPORT_TARGET_TEMPERATURE | SUPPORT_OPERATION_MODE
 
     @property
     def name(self):
@@ -113,5 +116,35 @@ class HeatmiserV3Thermostat(ClimateDevice):
         self.heatmiser.connect()
         self.dcb = self.heatmiser.get_info()
         self.heatmiser.disconnect()
-		
-	
+
+#     def set_aux_heat(self):
+#         self.heatmiser.connect()
+#         if self.dcb.get(43) = 0:
+#             self.heatmiser.set_dcb(43, bytearray([1]))
+#         else:
+#             self.heatmiser.set_dcb(43, bytearray([0]))
+#
+    def turn_aux_heat_on(self):
+        """Turn auxiliary heater on."""
+        self.heatmiser.connect()
+        self.heatmiser.set_dcb(43, bytearray([1]))
+        self.schedule_update_ha_state()
+
+    def turn_aux_heat_off(self):
+        """Turn auxiliary heater off."""
+        self.heatmiser.connect()
+        self.heatmiser.set_dcb(43, bytearray([0]))
+        self.schedule_update_ha_state()
+        
+    @property
+    def current_operation(self):
+        """Return current operation ie. heat, cool, idle."""
+        if self.dcb.get("heating_is_currently_on") == 1:
+            return "On"
+        else:
+            return "Off"
+    
+    @property
+    def is_aux_heat_on(self):
+        """Return true if aux heat is on."""
+        return self.dcb.get(43)

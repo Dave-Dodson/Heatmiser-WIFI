@@ -212,6 +212,8 @@ class Heatmiser(HeatmiserTransport):
             info["model"] = "PRT" 
         elif(dcb[4] == 3):
             info["model"] = "PRT-E"
+        elif(dcb[4] == 4):
+            info["model"] = "PRTHW"
         else:
             info["model"] = "Unknown"
         if(dcb[5] == 0):

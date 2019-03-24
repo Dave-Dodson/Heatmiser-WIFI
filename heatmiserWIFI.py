@@ -9,7 +9,9 @@ from . import heatmiser_wifi
 import voluptuous as vol
 
 from homeassistant.components.climate import (
-    ClimateDevice, PLATFORM_SCHEMA, SUPPORT_TARGET_TEMPERATURE, ATTR_MIN_TEMP, SUPPORT_AUX_HEAT, SUPPORT_OPERATION_MODE)
+    ClimateDevice, PLATFORM_SCHEMA, ATTR_MIN_TEMP, SUPPORT_AUX_HEAT, SUPPORT_OPERATION_MODE)
+from homeassistant.components.climate.const import (
+    SUPPORT_TARGET_TEMPERATURE)
 from homeassistant.const import (
     TEMP_CELSIUS, ATTR_TEMPERATURE, CONF_PORT, CONF_NAME, CONF_ID, CONF_PIN)
 import homeassistant.helpers.config_validation as cv
